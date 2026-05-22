@@ -1,51 +1,56 @@
 # AI Assistant Comparison
 
 ## Overview
-This project compares two personal assistant implementations:
 
-1. An open-source assistant using `Qwen/Qwen2.5-0.5B-Instruct`
-2. A frontier-model assistant using the Gemini API
+This project compares two personal assistant implementations built with different model access strategies:
+
+- **Open-source assistant** using `Qwen/Qwen2.5-0.5B-Instruct`
+- **Frontier-model assistant** using the Gemini API
 
 The goal was to compare both systems on:
-- hallucination / factual reliability
-- bias and harmful outputs
-- safety / jailbreak resistance
 
-## Features
+- Hallucination / factual reliability
+- Bias and harmful outputs
+- Safety / jailbreak resistance
+
 Both assistants were designed to support:
-- chat-based interaction
-- short-term conversational memory
-- simple Gradio interface
+
+- Multi-turn chat-based interaction
+- Short-term conversational memory
+- Basic assistant-like behavior
+- Lightweight Gradio interface
 
 ## Project Files
-- `oss_app.py` - open-source assistant using Qwen
-- `frontier_app.py` - frontier assistant using Gemini API
-- `evaluation.py` - creates evaluation template CSV
-- `evaluation_template.csv` - prompt evaluation sheet
+
+- `oss_app.py` - Open-source assistant using Qwen
+- `frontier_app.py` - Frontier assistant using Gemini API
+- `evaluation.py` - Generates the evaluation template CSV
+- `evaluation_template.csv` - Prompt evaluation sheet
 - `requirements.txt` - Python dependencies
+- `report.pdf` - Final evaluation report
+- `report.md` - Markdown version of the report
 
 ## Setup Instructions
 
-Create and activate the virtual environment:
+### 1. Create and activate a virtual environment
 
 ```bash
 python3.11 -m venv venv
 source venv/bin/activate
 ```
 
-Install dependencies:
+### 2. Install dependencies
 
 ```bash
 pip install --upgrade pip
 pip install numpy==1.26.4
 pip install torch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2
 pip install transformers==4.41.2 accelerate gradio google-generativeai pandas matplotlib python-dotenv
-pip freeze > requirements.txt
 ```
 
-## Environment Variables
+### 3. Add environment variables
 
-Create a `.env` file and add your Gemini API key:
+Create a `.env` file and add:
 
 ```env
 GEMINI_API_KEY=your_api_key_here
@@ -53,13 +58,13 @@ GEMINI_API_KEY=your_api_key_here
 
 ## Running the Apps
 
-Run the open-source assistant:
+### Open-source assistant
 
 ```bash
 python oss_app.py
 ```
 
-Run the frontier assistant:
+### Frontier assistant
 
 ```bash
 python frontier_app.py
@@ -68,11 +73,12 @@ python frontier_app.py
 ## Evaluation Method
 
 The assistants were evaluated using prompts across three categories:
-- factual prompts
-- adversarial prompts
-- bias / sensitive prompts
 
-The evaluation sheet was generated using:
+- Factual prompts
+- Adversarial / jailbreak prompts
+- Bias / sensitive prompts
+
+The evaluation sheet was generated with:
 
 ```bash
 python evaluation.py
@@ -80,78 +86,117 @@ python evaluation.py
 
 This creates:
 
-```bash
-evaluation_template.csv
-```
+- `evaluation_template.csv`
 
 ## Evaluation Notes
 
-During testing, the frontier assistant UI launched successfully in Gradio, but live Gemini inference was blocked by API quota exhaustion.
+During testing, the frontier assistant UI launched successfully in Gradio, but live Gemini inference could not be completed because the API repeatedly returned quota exhaustion errors.
 
 Observed issue:
-- `429 ResourceExhausted`
-- quota exceeded for `gemini-2.0-flash`
 
-Because of this, frontier runtime results were marked as `quota blocked` in the evaluation sheet.
+- `429 ResourceExhausted`
+- Quota exceeded for `gemini-2.0-flash`
+
+Because of this, frontier runtime results were marked as **quota blocked** in the evaluation sheet instead of being treated as model-quality failures.
 
 ## Architecture Decisions
 
 ### Open-source assistant
-- Model: `Qwen/Qwen2.5-0.5B-Instruct`
-- Library: Hugging Face Transformers
-- UI: Gradio
-- Memory: conversation history stored in the current session
+
+- **Model:** `Qwen/Qwen2.5-0.5B-Instruct`
+- **Library:** Hugging Face Transformers
+- **UI:** Gradio
+- **Memory:** Conversation history stored in the current session
 
 ### Frontier assistant
-- Model: Gemini API model
-- Library: Google Generative AI Python SDK
-- UI: Gradio ChatInterface
-- Memory: chat session maintained in runtime
+
+- **Model:** Gemini API model
+- **Library:** Google Generative AI Python SDK
+- **UI:** Gradio ChatInterface
+- **Memory:** Chat session maintained in runtime
 
 ## Tradeoffs
 
 ### Open-source assistant
-Pros:
-- low cost after setup
-- more control over execution
-- no external API needed once model is available locally
 
-Cons:
-- slower setup on local machine
-- model download is large
-- weaker safety and reasoning compared to frontier models
+**Pros**
+- Low cost after setup
+- More control over execution
+- No external API needed once the model is available locally
+
+**Cons**
+- Slower setup on local machine
+- Large model download
+- Weaker safety and reasoning compared to frontier models
 
 ### Frontier assistant
-Pros:
-- easier model access through API
-- strong quality and safety in general
-- no large local model download required
 
-Cons:
-- depends on API quota and availability
-- requires API key management
-- can fail due to billing or rate limits
+**Pros**
+- Easy model access through API
+- Strong quality and safety in general
+- No large local model download required
+
+**Cons**
+- Depends on API quota and availability
+- Requires API key management
+- Can fail due to billing or rate limits
 
 ## Limitations
-- Full OSS runtime testing was slowed by large first-time model download on local CPU hardware.
-- Full frontier runtime testing was blocked by Gemini API quota exhaustion.
-- Evaluation sheet currently includes blocked frontier results where runtime access was unavailable.
 
-## Improvements with More Time
-- migrate from `google.generativeai` to `google.genai`
-- add automated evaluation scoring
-- add better safety guardrails
-- deploy OSS assistant to Hugging Face Spaces
-- add logging and analytics
-- add persistent memory
+- Full OSS runtime testing was slower on local CPU hardware because of the large first-time model download.
+- Full frontier runtime testing was blocked by Gemini API quota exhaustion.
+- The evaluation sheet includes blocked frontier results where runtime access was unavailable.
+
+## Improvements With More Time
+
+- Migrate from `google.generativeai` to `google.genai`
+- Add automated evaluation scoring
+- Add stronger safety guardrails
+- Add persistent memory
+- Add better logging and analytics
+- Expand the evaluation set with more systematic prompts
+
+## Bonus Features
+
+### Public OSS Deployment
+
+The open-source assistant has been deployed publicly on Hugging Face Spaces using Gradio.
+
+**Demo link:** https://huggingface.co/spaces/moinn07/ai-assistant-comparison
+
+### Guardrails / Safety
+
+A simple keyword-based safety layer blocks unsafe prompts such as bomb-making, hacking, and jailbreak-style requests before generation.
+
+### Memory / Tool Use
+
+The deployed OSS assistant supports short-term session memory across turns and includes a simple date/time tool.
+
+### Observability
+
+The deployed app logs interactions with timestamp, input, output, and latency into a CSV file for basic observability.
+
+### Cost + Latency Table
+
+| Platform | Hardware | Approx. Latency | Approx. Cost | Notes |
+|---|---|---:|---:|---|
+| Hugging Face Spaces | CPU Basic | 5–10s | $0 | Free public deployment |
+| Hugging Face Spaces | Upgraded GPU | 1–3s | Paid | Better latency |
+| RunPod | Small GPU | 1–2s | Pay-as-you-go | Better production option |
+| Replicate | Hosted inference | 2–5s | Pay-per-use | Easy hosted deployment |
 
 ## Submission Contents
+
 This project includes:
-- source code
-- evaluation CSV
-- setup instructions
-- architecture notes
-- tradeoff analysis
+
+- Source code
+- Evaluation CSV
+- Setup instructions
+- Architecture notes
+- Tradeoff analysis
+- Evaluation report PDF
+- Public OSS demo link
 
 ## Author
-Moinuddin Hassan
+
+**Moinuddin Hassan**
